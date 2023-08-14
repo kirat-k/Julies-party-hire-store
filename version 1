@@ -1,0 +1,82 @@
+#julies party hire store
+import tkinter as tk
+from tkinter import *
+from tkinter import ttk
+
+
+def enter_data():
+    accepted = accept_var.get()
+    
+    if accepted=="Accepted":
+        # User info
+        firstname = first_name_entry.get()
+        lastname = last_name_entry.get()
+       
+        if firstname and lastname:
+            hired = hired_combobox.get()
+            amount = amount_spinbox.get()
+
+            print("First name: ", firstname, "Last name: ", lastname)
+            print("Item Hired: ", hired, "Amount Hired: ", amount,)
+        else:
+            tk.messagebox.showwarning(title="Error", message="First name and last name are required.")
+    else:
+        tk.messagebox.showwarning(title= "Error", message="You have not accepted the terms")
+
+
+#Making the main window where the user can input data
+window = tk.Tk()
+window.title("Julies party hire")
+#changing the background to a fun colour
+window.configure(bg = '#f0d5e3')
+
+#Adding a title so it is clear what the GUI is about
+Greeting = tk.Label(text = "Julie's Party Hire Store", font = 'Helvetica 50 bold', fg = '#6848a3', bg = '#f0d5e3')
+Greeting.pack()
+
+frame = tk.Frame(window)
+frame.pack()
+
+#Adding an image to make the gui look more fun and have a party feeling
+image_path = "image.png"
+image = tk.PhotoImage(file="pinata.png")
+resized_image = image.subsample(3, 3)
+#Using a label widget to add the image into the GUI
+image_label = tk.Label(window, image=resized_image, bg = '#f0d5e3')
+image_label.pack()
+
+
+#saving the users information
+user_info_frame = tk.LabelFrame(frame, text ="user information", bg = '#f0d5e3')
+user_info_frame.grid(row= 5, column=0, padx=20, pady=10)
+
+first_name_label = tk.Label(user_info_frame, text="First Name", bg = '#f0d5e3')
+first_name_label.grid(row=0, column=0)
+last_name_label = tk.Label(user_info_frame, text="Last Name", bg = '#f0d5e3')
+last_name_label.grid(row=0, column=1)
+
+first_name_entry = tk.Entry(user_info_frame)
+last_name_entry = tk.Entry(user_info_frame)
+first_name_entry.grid(row=1, column=0)
+last_name_entry.grid(row=1, column=1)
+
+hired_label = tk.Label(user_info_frame, text="Item Hired", bg = '#f0d5e3')
+hired_combobox = ttk.Combobox(user_info_frame, values=["", "Bouncy castle", "Chocolate Fountain", "Kareoke Machine", "Twister", "Disco Ball", "Bowling set", "backdrop"])
+hired_label.grid(row=0, column=2)
+hired_combobox.grid(row=1, column=2)
+
+amount_label = tk.Label(user_info_frame, text="Amount Hired", bg = '#f0d5e3')
+amount_spinbox = tk.Spinbox(user_info_frame, from_=0, to=100,)
+amount_label.grid(row=2, column=0)
+amount_spinbox.grid(row=3, column=0)
+
+accept_var = tk.StringVar(value="Not Accepted")
+
+for widget in user_info_frame.winfo_children():
+    widget.grid_configure(padx=10, pady=5,)
+
+button = tk.Button(frame, text="Enter data", command= enter_data, bg = '#f0d5e3')
+button.grid(row=3, column=0, sticky="news", padx=20, pady=10)
+ 
+
+window.mainloop()  
