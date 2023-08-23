@@ -1,0 +1,174 @@
+# Julies Party Hire Computer Programme
+# Version 3
+
+# Importing tkinter as I need it to create the GUI for the program.
+import tkinter as tk
+# Importing different tkinter modules that I will be using throughout this programme. 
+from tkinter import *
+from tkinter import ttk
+from tkinter import messagebox
+
+# Creating a class for the partyhire app in order to help me manage it better.
+class PartyHireApp:
+    def __init__(self, root):
+        self.root = root
+        # Adding a title of Julies Party Hire as that is the title of the entire programme.
+        self.root.title("Julies Party Hire")
+        # Changing the background colour to add fun party feeling to the programme.
+        self.root.configure(bg='#f0d5e3')
+        
+        # This is the counter for generating receipt numbers, Having counted receipt numbers rather than random helping Julie keep track of the growth of her business. 
+        self.counter = 1 
+
+        # Adding a title at the top of the programme to make it clear what the programme is.
+        Greeting = tk.Label(text="Julie's Party Hire Store", font='Helvetica 50 bold', fg='#6848a3', bg='#f0d5e3')
+        Greeting.pack()
+
+        # Creating a frame widget to help layout the GUI.
+        ttk.Style(root).configure("TFrame", background = "#f0d5e3" )
+        self.frame = ttk.Frame(root)
+        self.frame.pack()
+        
+
+        # Creating a labeled frame inside the main frame for layout and organizational purposes.
+        self.user_info_frame = tk.LabelFrame(self.frame, text="User Information", bg='#f0d5e3')
+        self.user_info_frame.grid(row=5, column=0, padx=20, pady=(20,20))
+
+
+        # labeling first & last name entry widgets so the user knows what information to enter in each box.
+        first_name_label = tk.Label(self.user_info_frame, text="First Name", bg='#f0d5e3')
+        first_name_label.grid(row=0, column=0) # Placing the widget in an appropriate place. 
+        last_name_label = tk.Label(self.user_info_frame, text="Last Name", bg='#f0d5e3')
+        last_name_label.grid(row=0, column=1)
+
+        # Making the widgets where the user can enter first & last name. 
+        self.first_name_entry = tk.Entry(self.user_info_frame) # Making sure the widgets are in the frame.
+        self.last_name_entry = tk.Entry(self.user_info_frame)
+        self.first_name_entry.grid(row=1, column=0) 
+        self.last_name_entry.grid(row=1, column=1)
+
+        # Creating a item hired widget, with a drop down list of all the products the store has for hire.
+        hired_label = tk.Label(self.user_info_frame, text="Item Hired", bg='#f0d5e3')
+        self.hired_combobox = ttk.Combobox(self.user_info_frame, values=[ "Bouncy castle", "Chocolate Fountain", "Kareoke Machine", "Twister", "Disco Ball", "Bowling set", "backdrop"], state= "readonly")
+        hired_label.grid(row=2, column=0)
+        self.hired_combobox.grid(row=3, column=0)
+
+        # Creating an amount hired widget with a spinbox.
+        amount_label = tk.Label(self.user_info_frame, text="Amount Hired", bg='#f0d5e3')
+        self.amount_spinbox = tk.Spinbox(self.user_info_frame, from_=0, to=100,)
+        amount_label.grid(row=2, column=1)
+        self.amount_spinbox.grid(row=3, column=1)
+
+        # Creating an accepted variable.
+        self.accept_var = tk.StringVar(value="Accepted")
+
+        # Adding padding around all the widgets in the entry frame in order to have a neat looking programme.
+        for widget in self.user_info_frame.winfo_children():
+            widget.grid_configure(padx=10, pady=5,)
+
+        # Creating an enter button so that the user can enter data 
+        self.enter_button = tk.Button(self.frame, text="Enter Data", command=self.enter_data, bg='#f0d5e3', activebackground='#f0d5e3')
+        self.enter_button.grid(row=6, column=0, sticky="news", padx=20, pady=(10,10))
+        
+        # Creating the columns for the treeview so it is organised and the user can see what column represents what. 
+        columns = ("Receipt Number", "First Name", "Last Name", "Item Hired", "Amount Hired")
+        self.tree = ttk.Treeview(root, columns=columns, show="headings")
+
+        self.tree.pack(fill="both", expand=True, padx=20, pady=(20, 5))
+
+        for col in columns:
+            self.tree.heading(col, text=col)
+
+        # Adding a scrollbar so the user can scroll through when there are a lot of reciepts. 
+        scrollbar = ttk.Scrollbar(root, orient="vertical", command=self.tree.yview)
+        self.tree.configure(yscrollcommand=scrollbar.set)
+
+        # Adding a searchbar so the user can find any reciepts using search.
+        self.search_label = tk.Label(text = "Search", bg='#f0d5e3')
+        self.search_entry = tk.Entry(self.frame)
+        self.search_entry.grid(row=10, column=0, sticky="news", padx=20, pady=(10, 0))
+        self.search_entry.bind("<KeyRelease>", self.search_entries)
+
+        # Adding placeholder text on the search bar so the user knows that it is a search bar.
+        self.search_placeholder = " Searchbar "
+        self.search_entry.insert(0, self.search_placeholder)
+        self.search_entry.config(fg='#f0d5e3', justify= 'center')
+
+        # Adding binds so the text can dissapear when the use is typing to search something.
+        self.search_entry.bind("<FocusIn>", self.on_search_entry_focus_in)
+        self.search_entry.bind("<FocusOut>", self.on_search_entry_focus_out)
+        self.search_entry.bind("<KeyRelease>", self.search_entries)
+
+        # Making the widgets within the gui be able to adjust according to the window size.
+        self.tree.pack(fill="both", expand=True)
+        scrollbar.pack(side="right", fill="y")
+
+        # Adding a delete button so Julie can delete reciepts once the items are returned. 
+        self.delete_button = tk.Button(root, text="Delete Selected", command=self.delete_selected, bg='#f0d5e3')
+        self.delete_button.pack(padx=20, pady=10)
+
+    # The first part of the code was adding the widgets and creating the layout, now in this part of the code I will make it functioning.
+    # Creating a function for entering the data so that the entered data can be recorded.
+    def enter_data(self):
+        accepted = self.accept_var.get()
+
+        # Making sure that all fields must be entered for the entry to be valid. 
+        if accepted == "Accepted":
+            # User info
+            firstname = self.first_name_entry.get()
+            lastname = self.last_name_entry.get()
+            hired = self.hired_combobox.get()
+            amount = self.amount_spinbox.get()
+
+            if firstname and lastname and hired and amount:
+
+                # Generating a receipt number that goes up by one for each new reciept so that Julie can keep track of how many customers she has.
+                receipt_number = f"{self.counter:06d}" # Using 06d in order to have a neat looking format with all reciept numbers having 6 digits.
+                self.counter += 1
+
+                # When all the inputs are filled out correctly, they will be inserted into the treeview.
+                self.tree.insert("", '0', values=(receipt_number, firstname, lastname, hired, amount))
+            else:
+                messagebox.showwarning(title="Error", message="Please fill out all fields.")
+    
+    # Creating the function for the searchbar.
+    def search_entries(self, event):
+        search_text = self.search_entry.get().lower()
+        
+        for item in self.tree.get_children():
+            values = self.tree.item(item, "values")
+            if search_text in " ".join(map(str, values)).lower():
+                self.tree.item(item, tags=("visible",))
+            else:
+                self.tree.item(item, tags=("hidden",))
+
+        self.tree.tag_configure("visible", background="#f0d5e3")
+        self.tree.tag_configure("hidden", background="white")
+    
+    # Creating a function for the placeholder text on the search bar.
+    # Making the placeholder text dissapear when the search bar is clicked.
+    def on_search_entry_focus_in(self, event):
+        if self.search_entry.get() == self.search_placeholder:
+            self.search_entry.delete(0, "end")
+            self.search_entry.config(fg='black') # Making sure that the typed text is black and clear unlike the placeholder text.
+
+    # Making sure that the placeholder text is present when the search bar is not in use.
+    def on_search_entry_focus_out(self, event):
+        if not self.search_entry.get():
+            self.search_entry.insert(0, self.search_placeholder)
+            self.search_entry.config(fg='#f0d5e3') # Making the placeholder text light and matching the background colour
+    
+    # Creating a function for the delete button so the user can delete any data entries from the treeview.
+    def delete_selected(self):
+        selected_item = self.tree.selection()
+        if selected_item:
+            self.tree.delete(selected_item)
+        else:
+            # Making sure that the delete button will only work when the user has selected something to avoid deleting something by mistake.
+            messagebox.showwarning(title="Error", message="Select an item to delete.")
+
+    
+# Keeping the GUI open until the user closes it.
+window = tk.Tk()
+app = PartyHireApp(window)
+window.mainloop()
